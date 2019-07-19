@@ -8,7 +8,10 @@ ex.get('/' , function(req, res)
 });
 
 io.on('connection', function(socket) {
-    console.log('유저 연결됨');
+    console.log('유저' + socket.id + '연결됨');
+    socket.on('disconnect', function() {
+        console.log(socket.id + '의 연결 끊김');
+    })
 })
 
 http.listen(8080, function() {
