@@ -1,0 +1,15 @@
+{
+  "name": "kkutu",
+  "version": "1.0.0",
+  "description": "Node.js w/ Socket.IO 기반 끝말잇기 게임",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^2.2.0"
+  }
+}
