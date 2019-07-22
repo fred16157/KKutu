@@ -1,26 +1,130 @@
 <!doctype html>
 <html>
-  <head>
+
+<head>
     <title>테스트</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
     <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font: 13px Helvetica, Arial; }
-      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
-      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages li { padding: 5px 10px; }
-      #messages li:nth-child(odd) { background: #eee; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font: 13px Helvetica, Arial;
+        }
+        ul {
+            height: 90%;
+        }
+        form#msgform {
+            background: #000;
+            padding: 3px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        form#msgform input {
+            border: 0;
+            padding: 10px;
+            width: 80%;
+            margin-right: .5%;
+        }
+
+        form#msgform button {
+            width: 9%;
+            background: rgb(130, 224, 255);
+            border: none;
+            padding: 10px;
+        }
+
+        #messages {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        #messages li {
+            padding: 5px 10px;
+        }
+
+        #messages li:nth-child(odd) {
+            background: #eee;
+        }
     </style>
-  </head>
-  <body>
-    <ul id="messages"></ul>
-    <form action="">
-      <input id="m" autocomplete="off" /><button>전송</button>
-    </form>
+</head>
+
+<body>
+        <div id="top">
+            
+        </div>
+        <div id="bottom">
+            <h5>채팅</h5>
+            <ul id="messages"></ul>
+            <form id="msgform" action="">
+                <input id="msgtext" autocomplete="off" />
+                <button>전송</button>
+                <button type="button" data-toggle="modal" data-target="#settingsModal">설정</button>
+            </form>
+        </div>
+
+    <div class="modal" id="settingsModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">설정</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="settings">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="username">닉네임</label>
+                            <input id="username" class="form-control" type="text" placeholder="닉네임 입력">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" onclick="updateSettings()" class="btn btn-primary" data-dismiss="modal">저장</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
     <script>
+        //클라이언트에서 동작하는 코드
+        //서버에서 동작하는 코드는 index.js로
         var socket = io();
+        $(function () {
+            
+            $('form#msgform').submit(function (e) {
+                e.preventDefault(); //페이지 새로고침 방지용
+                socket.emit('msg', $('#msgtext').val()); //메시지 전달
+                $('#msgtext').val('');
+                return false;
+            });
+            socket.on('msg', function (msg) {
+                $('#messages').append($('<li>').text(msg));
+            });
+        });
+        function updateSettings() {
+            socket.emit('update', $('#username').val());
+            console.log('설정 저장 완료');
+        }
     </script>
-  </body>
+</body>
+
 </html>
