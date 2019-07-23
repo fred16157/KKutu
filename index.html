@@ -38,7 +38,12 @@
             width: 100%;
         }
 
+        #bottom {
+            background-image: url("./img/background.jpg");
+        }
+
         #messages {
+            background-color: rgba(0,0,0,0);
             list-style-type: none;
             margin: 0;
             padding: 0;
@@ -48,9 +53,11 @@
         #messages li {
             padding: 5px 10px;
         }
-
-        #messages li:nth-child(odd) {
-            background: #eee;
+        .success {
+            color: green;
+        }
+        .alert {
+            color: red;
         }
     </style>
 </head>
@@ -64,7 +71,7 @@
         <ul id="messages"></ul>
         <form id="msgform" action="">
             <div class="input-group">
-                <input type="text" class="form-control" aria-describedby="button-addon2">
+                <input type="text" id="msgtext" class="form-control" aria-describedby="button-addon2">
                 <div class="input-group-append">
                     <button class="btn btn-primary" type="button" id="button-addon2">전송</button>
                     <button class="btn btn-secondary" type="button" data-toggle="modal"
@@ -116,6 +123,14 @@
             });
             socket.on('msg', function (msg) {
                 $('#messages').append($('<li>').text(msg));
+                $(document).scrollTop($(document).height());
+            });
+            socket.on('success', function (msg) {
+                $('#messages').append($('<li>').text(msg).addClass('success'));
+                $(document).scrollTop($(document).height());
+            });
+            socket.on('alert', function (msg) {
+                $('#messages').append($('<li>').text(msg).addClass('alert'));
                 $(document).scrollTop($(document).height());
             });
         });
