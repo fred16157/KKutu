@@ -19,14 +19,25 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-size: 1rem;
         }
 
         body {
             font: 13px Helvetica, Arial;
+            width: 100%;
+            height: 100%;
         }
 
         ul {
             height: 90%;
+        }
+
+        #users {
+            position: fixed;
+            right: 0;
+            top: 0;
+            padding: 20px;
+            width: 20%;
         }
 
         form#msgform {
@@ -36,10 +47,6 @@
             position: fixed;
             bottom: 0;
             width: 100%;
-        }
-
-        #bottom {
-            background-image: url("./img/background.jpg");
         }
 
         #messages {
@@ -59,6 +66,10 @@
         .alert {
             color: red;
         }
+        .highlight {
+            font-size: 1.25rem;
+            font-weight: bolder;
+        }
     </style>
 </head>
 
@@ -67,11 +78,14 @@
 
     </div>
     <div id="bottom">
-        <h5>채팅</h5>
+        <h3>채팅</h3>
+        <h5 id="currentUsername"></h5>
         <ul id="messages"></ul>
+        <ol id="users"></ol>
+        <div id="alerts"></div>
         <form id="msgform" action="">
             <div class="input-group">
-                <input type="text" id="msgtext" class="form-control" aria-describedby="button-addon2">
+                <input type="text" id="msgtext" class="form-control" aria-describedby="button-addon2" autocomplete="off">
                 <div class="input-group-append">
                     <button class="btn btn-primary" type="button" id="button-addon2">전송</button>
                     <button class="btn btn-secondary" type="button" data-toggle="modal"
@@ -94,7 +108,7 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="username">닉네임</label>
-                            <input id="username" class="form-control" type="text" placeholder="닉네임 입력">
+                            <input id="username" class="form-control" type="text" placeholder="닉네임 입력" autocomplete="off">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -112,6 +126,8 @@
         //클라이언트에서 동작하는 코드
         //서버에서 동작하는 코드는 index.js로
         var socket = io();
+        $('#currentUsername').text('현재 닉네임: ' + socket.id);
+        var locidx = -1;
         $(function () {
 
             $('form#msgform').submit(function (e) {
@@ -133,10 +149,40 @@
                 $('#messages').append($('<li>').text(msg).addClass('alert'));
                 $(document).scrollTop($(document).height());
             });
+            socket.on('userListUpdate', function (userlist) {
+                $('#users').empty();
+                $.each(userlist, function () {
+                    $('#users').append($('<li>').text(this.username));
+                });
+                highlightUser();
+            });
+            socket.on('turn', function (idx) {
+                locidx = idx;
+                highlightUser();
+            });
+            socket.on('gameEnd', function() {
+                locidx = -1;
+                highlightUser();
+            });
         });
+
+        function highlightUser() {
+            $('#users').children().removeClass('highlight');
+            if(locidx !== -1)
+            {
+                $('#users').children().eq(locidx).addClass('highlight');
+            }
+        }
+
         function updateSettings() {
             socket.emit('update', $('#username').val());
+            $('#currentUsername').text('현재 닉네임: ' + $('#username').val());
             console.log('설정 저장 완료');
+        }
+
+        function addAlert(alertmsg) {
+            var html = '<div class="toast" role="alert" aria-live="assertive" aria-atomic="true"><div class="toast-header"><strong class="mr-auto">시스템</strong><button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close"><span aria-hidden="true">&times;</span></button></div><div class="toast-body">' + alertmsg + '</div></div>'
+            $('#alerts').append(html);
         }
     </script>
 </body>
