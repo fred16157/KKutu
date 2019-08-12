@@ -6,14 +6,23 @@ var ex = require('express')();
 var http = require('http').createServer(ex);
 var io = require('socket.io')(http);
 //const opn = require('opn');
+//var fs = require('fs');
 var userlist = [];
+var answerlist = [];
 var currentChar = '';
 var timeout;
 var idx;
 
+// fs.readFile('blacklist.txt', 'utf8', function(err, data) {
+//     if (err) throw err;
+//     console.log('블랙리스트 목록 로딩 완료');
+//     blacklist = data.split('/n');
+//   });
+
 ex.set('trust proxy', true);
 ex.get('/', function (req, res) {
-    res.sendfile(__dirname + '/index.html');
+    res.set({Connection: 'Keep-Alive'});
+    res.sendFile(__dirname + '/index.html');
 });
 
 io.on('connection', function (socket) {
@@ -51,13 +60,14 @@ io.on('connection', function (socket) {
             raiseAnswered(socket, msg.split(' ')[0]);
         }
         else if (msg.split(' ')[0].charAt(0) !== currentChar && currentChar !== '' && userlist[idx].id === socket.id) {
-            raiseWrong(socket, msg.split(' ')[0]);
+            io.emit('alert', socket.username + '님의 단어 ' + msg.split(' ')[0] + '는 사용할 수 없는 단어입니다.');
         }
     });
 });
 
 function startGame() {
     idx = 0;
+    answerlist = [];
     updateTurn();
     io.emit('success', userlist[idx].username + '님이 10초 이내로 ' + currentChar + '로 시작하는 시작할 단어를 입력해주세요.');
     timeout = setTimeout(() => {
@@ -67,16 +77,22 @@ function startGame() {
 
 function raiseAnswered(socket, answer) {
     if (blacklist.includes(answer)) {
-        raiseWrong(socket, answer);
+        io.emit('alert', socket.username + '님의 단어 ' + answer + '는 사용할 수 없는 단어입니다.');
+        return;
+    }
+    else if (answerlist.includes(answer)) {
+        io.emit('alert', socket.username + '님의 단어 ' + answer + '는 이미 사용된 단어입니다.');
+        return;
     }
     clearTimeout(timeout);
+    answerlist.push(answer);
     io.emit('success', socket.username + '님의 단어 ' + answer + '가 인정되었습니다.');
     console.log(socket.username + '님의 단어 ' + answer + '가 인정되었습니다.');
     currentChar = answer.charAt(answer.length - 1);
     if (++idx === userlist.length) {
         idx = 0;
     }
-    updateTurn();
+    updateTurn(answer);
     io.emit('success', userlist[idx].username + '님이 10초 이내로 ' + currentChar + "로 시직하는 단어를 입력해주세요.");
     timeout = setTimeout(() => {
         raiseTimeout()
@@ -92,12 +108,8 @@ function updateUsersList() {
     }));
 }
 
-function updateTurn() {
-    io.emit('turn', idx);
-}
-
-function raiseWrong(socket, answer) {
-    io.emit('alert', socket.username + '님의 단어 ' + answer + '는 인정되지 않습니다.');
+function updateTurn(answer) {
+    io.emit('turn', idx, currentChar, answer);
 }
 
 function raiseTimeout() { //시간초과

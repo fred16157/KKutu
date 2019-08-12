@@ -34,15 +34,22 @@
 
         #users {
             position: fixed;
-            right: 0;
-            top: 0;
+            left: 75%;
             padding: 20px;
             width: 20%;
         }
 
+        #bottom {
+            overflow:scroll;
+            position: fixed;
+            top: 40%;
+            width: 100%;
+            height: 50%;
+        }
+
         form#msgform {
             background: #ccc;
-            padding: 3px;
+            padding: 3px;overflow:scroll;
             display: block;
             position: fixed;
             bottom: 0;
@@ -50,42 +57,71 @@
         }
 
         #messages {
-            background-color: rgba(0,0,0,0);
+            background-color: rgba(0, 0, 0, 0);
             list-style-type: none;
             margin: 0;
             padding: 0;
             padding-bottom: 60px;
+            position: absolute;
+            left: 0;
+            top: 0;
         }
-
         #messages li {
             padding: 5px 10px;
         }
+
         .success {
             color: green;
         }
+
         .alert {
             color: red;
         }
+
         .highlight {
             font-size: 1.25rem;
             font-weight: bolder;
+        }
+
+        .jumbotron {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: block;
+            height: 35%;
+        }
+        #recent li {
+            float: left;
+            margin-right: 20px;
         }
     </style>
 </head>
 
 <body>
     <div id="top">
-
+        <div class="jumbotron">
+            <h1 class="display-4" id="title">현재 진행중인 게임이 없습니다.</h1>
+            <p class="lead" id="desc">게임을 시작하려면 /시작 (시작할 글자)를 입력해주세요.</p>
+            <hr class="my-4">
+            <p>최근 쓰인 단어 10개</p>
+            <ul id="recent" type="none"></ul>
+        </div>
     </div>
     <div id="bottom">
-        <h3>채팅</h3>
-        <h5 id="currentUsername"></h5>
         <ul id="messages"></ul>
         <ol id="users"></ol>
-        <div id="alerts"></div>
-        <form id="msgform" action="">
+        <div aria-live="polite" aria-atomic="true" style="position: relative; min-height: 200px;">
+            <!-- Position it -->
+            <div id="alerts" style="position: absolute; top: 0; right: 0;">
+
+            </div>
+        </div>
+    </div>
+    <form id="msgform" action="">
             <div class="input-group">
-                <input type="text" id="msgtext" class="form-control" aria-describedby="button-addon2" autocomplete="off">
+                <input type="text" id="msgtext" class="form-control" aria-describedby="button-addon2"
+                    autocomplete="off">
                 <div class="input-group-append">
                     <button class="btn btn-primary" type="button" id="button-addon2">전송</button>
                     <button class="btn btn-secondary" type="button" data-toggle="modal"
@@ -93,7 +129,6 @@
                 </div>
             </div>
         </form>
-    </div>
 
     <div class="modal" id="settingsModal" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
@@ -108,7 +143,8 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="username">닉네임</label>
-                            <input id="username" class="form-control" type="text" placeholder="닉네임 입력" autocomplete="off">
+                            <input id="username" class="form-control" type="text" placeholder="닉네임 입력"
+                                autocomplete="off">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -128,6 +164,8 @@
         var socket = io();
         $('#currentUsername').text('현재 닉네임: ' + socket.id);
         var locidx = -1;
+        var locch = '';
+        var recent = [];
         $(function () {
 
             $('form#msgform').submit(function (e) {
@@ -156,20 +194,41 @@
                 });
                 highlightUser();
             });
-            socket.on('turn', function (idx) {
+            socket.on('turn', function (idx, ch, answer) {
                 locidx = idx;
+                locch = ch;
+                if(answer != null)
+                {
+                    updateRecent(answer);
+                }
                 highlightUser();
             });
-            socket.on('gameEnd', function() {
+            socket.on('gameEnd', function () {
                 locidx = -1;
+                $('#title').text('현재 진행중인 게임이 없습니다.');
+                $('#desc').text('게임을 시작하려면 /시작 (시작할 글자)를 입력해주세요.');
+                $('#recent').empty();
                 highlightUser();
             });
+
         });
+
+        function updateRecent(answer) {
+            recent.unshift(answer);
+            if(recent.length === 11) {
+                recent.pop();
+            }
+            $('#recent').empty();
+            recent.forEach(element => {
+                $('#recent').append('<li><h4> <span class="badge badge-secondary">' + element + '</span></h4></li>')
+            });
+        }
 
         function highlightUser() {
             $('#users').children().removeClass('highlight');
-            if(locidx !== -1)
-            {
+            if (locidx !== -1) {
+                $('#title').text($('#users').children().eq(locidx).text() + '님의 차례입니다.');
+                $('#desc').text($('#users').children().eq(locidx).text() + '님은 ' + locch + '로 시작하는 단어를 입력해주세요.');
                 $('#users').children().eq(locidx).addClass('highlight');
             }
         }
@@ -181,7 +240,7 @@
         }
 
         function addAlert(alertmsg) {
-            var html = '<div class="toast" role="alert" aria-live="assertive" aria-atomic="true"><div class="toast-header"><strong class="mr-auto">시스템</strong><button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close"><span aria-hidden="true">&times;</span></button></div><div class="toast-body">' + alertmsg + '</div></div>'
+            var html = '<div class="toast fade show" role="alert" aria-live="assertive" aria-atomic="true"><div class="toast-header"><strong class="mr-auto">시스템</strong><button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close"><span aria-hidden="true">&times;</span></button></div><div class="toast-body">' + alertmsg + '</div></div>'
             $('#alerts').append(html);
         }
     </script>
