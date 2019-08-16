@@ -32,7 +32,7 @@
             height: 90%;
         }
 
-        #users {
+        #aside {
             position: fixed;
             left: 75%;
             padding: 20px;
@@ -40,7 +40,7 @@
         }
 
         #bottom {
-            overflow:scroll;
+            overflow: scroll;
             position: fixed;
             top: 40%;
             width: 100%;
@@ -49,7 +49,8 @@
 
         form#msgform {
             background: #ccc;
-            padding: 3px;overflow:scroll;
+            padding: 3px;
+            overflow: scroll;
             display: block;
             position: fixed;
             bottom: 0;
@@ -66,6 +67,7 @@
             left: 0;
             top: 0;
         }
+
         #messages li {
             padding: 5px 10px;
         }
@@ -91,6 +93,7 @@
             display: block;
             height: 35%;
         }
+
         #recent li {
             float: left;
             margin-right: 20px;
@@ -104,31 +107,27 @@
             <h1 class="display-4" id="title">현재 진행중인 게임이 없습니다.</h1>
             <p class="lead" id="desc">게임을 시작하려면 /시작 (시작할 글자)를 입력해주세요.</p>
             <hr class="my-4">
-            <p>최근 쓰인 단어 10개</p>
+            <h4>최근 쓰인 단어 10개</h4>
             <ul id="recent" type="none"></ul>
         </div>
     </div>
     <div id="bottom">
         <ul id="messages"></ul>
-        <ol id="users"></ol>
-        <div aria-live="polite" aria-atomic="true" style="position: relative; min-height: 200px;">
-            <!-- Position it -->
-            <div id="alerts" style="position: absolute; top: 0; right: 0;">
-
-            </div>
+        <div id="aside">
+            <h4>접속한 유저 목록</h4>
+            <ol id="users"></ol>
         </div>
     </div>
     <form id="msgform" action="">
-            <div class="input-group">
-                <input type="text" id="msgtext" class="form-control" aria-describedby="button-addon2"
-                    autocomplete="off">
-                <div class="input-group-append">
-                    <button class="btn btn-primary" type="button" id="button-addon2">전송</button>
-                    <button class="btn btn-secondary" type="button" data-toggle="modal"
-                        data-target="#settingsModal">설정</button>
-                </div>
+        <div class="input-group">
+            <input type="text" id="msgtext" class="form-control" aria-describedby="button-addon2" autocomplete="off">
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="button" id="button-addon2">전송</button>
+                <button class="btn btn-secondary" type="button" data-toggle="modal"
+                    data-target="#settingsModal">설정</button>
             </div>
-        </form>
+        </div>
+    </form>
 
     <div class="modal" id="settingsModal" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
@@ -189,6 +188,7 @@
             });
             socket.on('userListUpdate', function (userlist) {
                 $('#users').empty();
+                var i = 0;
                 $.each(userlist, function () {
                     $('#users').append($('<li>').text(this.username));
                 });
@@ -197,8 +197,7 @@
             socket.on('turn', function (idx, ch, answer) {
                 locidx = idx;
                 locch = ch;
-                if(answer != null)
-                {
+                if (answer != null) {
                     updateRecent(answer);
                 }
                 highlightUser();
@@ -208,6 +207,7 @@
                 $('#title').text('현재 진행중인 게임이 없습니다.');
                 $('#desc').text('게임을 시작하려면 /시작 (시작할 글자)를 입력해주세요.');
                 $('#recent').empty();
+                recent = [];
                 highlightUser();
             });
 
@@ -215,7 +215,7 @@
 
         function updateRecent(answer) {
             recent.unshift(answer);
-            if(recent.length === 11) {
+            if (recent.length === 11) {
                 recent.pop();
             }
             $('#recent').empty();

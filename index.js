@@ -21,20 +21,14 @@ var idx;
 
 ex.set('trust proxy', true);
 ex.get('/', function (req, res) {
-    res.set({Connection: 'Keep-Alive'});
+    res.set({ Connection: 'Keep-Alive' });
     res.sendFile(__dirname + '/index.html');
 });
 
 io.on('connection', function (socket) {
     console.log('유저 ' + socket.id + ' 연결됨');
-    io.emit('msg', "유저 " + socket.id + '가 연결되었습니다.', '#000000');
+    io.emit('msg', "유저 " + socket.id + '가 연결되었습니다.');
     socket.username = socket.id;
-    socket.color = '#' + (function co(lor) {
-        return (lor +=
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'a', 'b', 'c', 'd', 'e', 'f'][Math.floor(Math.random() * 16)])
-            && (lor.length == 6) ? lor : co(lor);
-    })('');
-    console.log(socket.username + '에 색 코드 ' + socket.color + '가 부여됨');
     userlist.push(socket);
     updateUsersList();
     socket.on('update', function (username) {
@@ -45,7 +39,7 @@ io.on('connection', function (socket) {
     });
     socket.on('disconnect', function () {
         console.log(socket.username + ' 의 연결 끊김');
-        io.emit('msg', "유저 " + socket.username + '의 연결이 끊겼습니다.', '#000000');
+        io.emit('msg', "유저 " + socket.username + '의 연결이 끊겼습니다.');
         userlist.splice(userlist.indexOf(socket));
         updateUsersList();
     });
@@ -71,7 +65,7 @@ function startGame() {
     updateTurn();
     io.emit('success', userlist[idx].username + '님이 10초 이내로 ' + currentChar + '로 시작하는 시작할 단어를 입력해주세요.');
     timeout = setTimeout(() => {
-        raiseTimeout()
+        raiseTimeout();
     }, 10000);
 }
 
@@ -95,7 +89,7 @@ function raiseAnswered(socket, answer) {
     updateTurn(answer);
     io.emit('success', userlist[idx].username + '님이 10초 이내로 ' + currentChar + "로 시직하는 단어를 입력해주세요.");
     timeout = setTimeout(() => {
-        raiseTimeout()
+        raiseTimeout();
     }, 10000);
 }
 
@@ -103,8 +97,7 @@ function updateUsersList() {
     io.emit('userListUpdate', userlist.map(function (i) {
         return {
             username: i.username,
-            color: i.color
-        }
+        };
     }));
 }
 
