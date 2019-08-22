@@ -176,15 +176,15 @@
             });
             socket.on('msg', function (msg) {
                 $('#messages').append($('<li>').text(msg));
-                $(document).scrollTop($(document).height());
+                $('#bottom').scrollTop($('#messages').height());
             });
             socket.on('success', function (msg) {
                 $('#messages').append($('<li>').text(msg).addClass('success'));
-                $(document).scrollTop($(document).height());
+                $('#bottom').scrollTop($('#messages').height());
             });
             socket.on('alert', function (msg) {
                 $('#messages').append($('<li>').text(msg).addClass('alert'));
-                $(document).scrollTop($(document).height());
+                $('#bottom').scrollTop($('#messages').height());
             });
             socket.on('userListUpdate', function (userlist) {
                 $('#users').empty();
